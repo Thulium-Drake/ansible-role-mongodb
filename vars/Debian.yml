@@ -1,0 +1,2 @@
+---
+mongodb_storage_path: '/var/lib/mongodb'

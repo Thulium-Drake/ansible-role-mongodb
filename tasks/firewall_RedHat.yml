@@ -1,0 +1,7 @@
+---
+- name: 'Ensure service port'
+  ansible.posix.firewalld:
+    port: "{{ mongodb_listen_port }}/tcp"
+    state: 'enabled'
+    permanent: true
+    immediate: true

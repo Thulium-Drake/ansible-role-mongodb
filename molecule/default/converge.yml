@@ -1,0 +1,20 @@
+---
+- name: 'Converge'
+  hosts: 'all'
+  tasks:
+    - name: 'Run role'
+      import_role:
+        name: "{{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') | basename }}"
+  vars:
+    mongodb_security_enabled: true
+    mongodb_pymongo_pip: true
+    mongodb_users:
+      - name: 'someuser'
+        database: 'somedb'
+        password: 'somepassword'
+        roles:
+          - 'dbAdmin'
+          - 'readWrite'
+    mongodb_ssl_key: '/etc/ssl/mongodb/server.key'
+    mongodb_ssl_cert: '/etc/ssl/mongodb/server.crt'
+    mongodb_ca_cert: '/etc/ssl/mongodb/ca.crt'

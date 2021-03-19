@@ -1,0 +1,69 @@
+---
+# MongoDB version and edition information
+mongodb_edition: 'org' # or enterprise
+mongodb_version: '4.4' # check for more versions on https://docs.mongodb.com
+
+mongodb_pymongo_pip: false  # Set to true if your distribution does not have the correct version
+                            # of python-pymongo available
+                            #
+                            #  MongoDB version  || PyMongo version required
+                            #  4.4              || 3.9+
+
+# Set to false if a different tool/role manages repository configuration (e.g. Foreman/Satellite)
+# For Debian-like systems, you can optionally set apt_proxy_url to configure a proxy
+# as apt-key does not respect APT's proxy config
+mongodb_manage_repos: true
+
+# Configure tuned (which is only default available on RedHat-like systems)
+mongodb_manage_tuned: false
+
+# Secure the server, this will configure the following:
+#
+# - SSL encryption
+# - User authentication
+#
+# When disabling this, it is highly recommended to set listen_interface to 127.0.0.1
+mongodb_security_enabled: true
+mongodb_manage_firewall: true # Only opens ports, nothing else!
+mongodb_listen_address: '0.0.0.0'
+mongodb_listen_port: '27017'
+
+# Administrative user credentials
+mongodb_admin_user: 'admin'
+mongodb_admin_password: 'mysecret_password'
+
+# MongoDB users (databases will be created with the users)
+# mongodb_users:
+#   - name: 'myuser'
+#     password: 'awesomepass'
+#     database: 'mydb'
+#     roles:
+#       - 'readWrite'
+mongodb_users: []
+
+# SSL configuration
+# SSL certificate setup (these files are provided by the ssl-cert package on Debian-like systems)
+mongodb_ssl_key: '/etc/ssl/private/ssl-cert-snakeoil.key'
+mongodb_ssl_cert: '/etc/ssl/certs/ssl-cert-snakeoil.pem'
+mongodb_ca_cert: '/etc/ssl/certs/ssl-cert-snakeoil.pem'
+mongodb_verify_certs: false
+
+# Replication configuration
+#
+# You can use the Ansible inventory to set the members e.g.
+#
+# * Inventory:
+# [mongob_cluster_1]
+# mongo1.example.com
+# mongo2.example.com
+# mongo3.example.com
+#
+# * MongoDB vars:
+# mongodb_replicaset_name: 'mongodb_cluster_1'
+# mongodb_replicaset_members: "{{ groups[mongodb_replicaset_name] }}"
+mongodb_replicaset_name: ''
+mongodb_replicaset_members: []
+# Replicaset password used for authenticating MongoDB instances
+# MongoDB docs suggest generating a password of at least 1024 characters:
+# $ openssl rand -base64 756
+mongodb_replicaset_password: 'mysupersecretandveryverylongpassword'

@@ -1,0 +1,7 @@
+---
+mongodb_supported_editions:
+  - 'org'
+  - 'enterprise'
+
+mongodb_supported_versions:
+  - '4.4'

@@ -1,0 +1,43 @@
+---
+- name: 'Update package sources'
+  hosts: 'all'
+  tasks:
+    - name: 'Update APT cache'
+      apt:
+        update_cache: true
+      when: ansible_facts['os_family'] == 'Debian'
+
+    - name: 'Update YUM cache'
+      yum:
+        update_cache: true
+      when: ansible_facts['os_family'] == 'RedHat'
+
+    - name: 'Ensure supporting packages'
+      package:
+        name:
+          - 'ssl-cert'
+          - 'gnupg2'
+        state: 'present'
+      when: ansible_facts['os_family'] == 'Debian'
+
+    - name: 'Ensure directory'
+      file:
+        path: '/etc/ssl/mongodb'
+        state: 'directory'
+
+    - name: 'Generate SSL key'
+      community.crypto.openssl_privatekey:
+        path: '/etc/ssl/mongodb/server.key'
+        size: 2048
+
+    - name: 'Generate SSL cert'
+      community.crypto.x509_certificate:
+        path: '/etc/ssl/mongodb/server.crt'
+        privatekey_path: '/etc/ssl/mongodb/server.key'
+        provider: 'selfsigned'
+
+    - name: 'Copy cert to ca'
+      copy:
+        src: '/etc/ssl/mongodb/server.crt'
+        dest: '/etc/ssl/mongodb/ca.crt'
+        remote_src: true
