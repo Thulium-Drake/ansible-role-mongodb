@@ -50,7 +50,7 @@ mongodb_verify_certs: false
 
 # Replication configuration
 #
-# You can use the Ansible inventory to set the members e.g.
+# You can use the Ansible inventory to set the members:
 #
 # * Inventory:
 # [mongob_cluster_1]
@@ -61,8 +61,21 @@ mongodb_verify_certs: false
 # * MongoDB vars:
 # mongodb_replicaset_name: 'mongodb_cluster_1'
 # mongodb_replicaset_members: "{{ groups[mongodb_replicaset_name] }}"
+# mongodb_replicaset_arbiter: true
+#
+# * Replica-set layout:
+#
+# - members:
+#   - mongo1.example.com (probably PRIMARY)
+#   - mongo2.example.com
+#
+# - arbiter:
+#   - mongo3.example.com
+#
 mongodb_replicaset_name: ''
 mongodb_replicaset_members: []
+mongodb_replicaset_arbiter: false # when set to true, the last member in the members list will be made arbiter
+
 # Replicaset password used for authenticating MongoDB instances
 # MongoDB docs suggest generating a password of at least 1024 characters:
 # $ openssl rand -base64 756

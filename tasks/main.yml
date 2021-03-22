@@ -170,6 +170,7 @@
     community.mongodb.mongodb_replicaset:
       replica_set: "{{ mongodb_replicaset_name }}"
       members: "{{ mongodb_replicaset_members }}"
+      arbiter_at_index: "{{ mongodb_replicaset_arbiter | ternary(mongodb_replicaset_members | length -1, omit) }}"
       login_host: 'localhost'
       login_user: "{{ mongodb_admin_user }}"
       login_password: "{{ mongodb_admin_password }}"
