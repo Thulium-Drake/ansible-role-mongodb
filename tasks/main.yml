@@ -67,11 +67,17 @@
     state: 'latest'
   when: mongodb_pymongo_pip
 
-- name: 'Ensure firewall settings'
-  include_tasks: "firewall_{{ ansible_facts['os_family'] }}.yml"
+- name: 'Setup firewall'
+  import_tasks: 'firewall_iptables.yml'
   when:
-   - mongodb_manage_firewall
-   - mongodb_listen_address != '127.0.0.1'
+    - ansible_facts['os_family'] == 'Debian'
+    - mongodb_manage_firewall
+
+- name: 'Setup firewall'
+  import_tasks: 'firewall_firewalld.yml'
+  when:
+    - ansible_facts['os_family'] == 'RedHat'
+    - mongodb_manage_firewall
 
 - when: mongodb_security_enabled
   block:

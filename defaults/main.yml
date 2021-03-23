@@ -3,11 +3,11 @@
 mongodb_edition: 'org' # or enterprise
 mongodb_version: '4.4' # check for more versions on https://docs.mongodb.com
 
-mongodb_pymongo_pip: false  # Set to true if your distribution does not have the correct version
-                            # of python-pymongo available
-                            #
-                            #  MongoDB version  || PyMongo version required
-                            #  4.4              || 3.9+
+mongodb_pymongo_pip: true  # Set to false if your distribution does have the correct version
+                           # of python-pymongo available
+                           #
+                           #  MongoDB version  || PyMongo version required
+                           #  4.4              || 3.9+
 
 # Set to false if a different tool/role manages repository configuration (e.g. Foreman/Satellite)
 # For Debian-like systems, you can optionally set apt_proxy_url to configure a proxy

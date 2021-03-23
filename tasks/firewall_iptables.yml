@@ -1,0 +1,23 @@
+---
+- name: 'Install packages'
+  package:
+    name:
+      - 'iptables-persistent'
+    state: 'present'
+
+- name: 'Ensure services'
+  service:
+    name: "{{ service }}"
+    state: 'started'
+    enabled: true
+  loop:
+    - 'netfilter-persistent'
+  loop_control:
+    loop_var: 'service'
+
+- name: 'Ensure service port'
+  iptables:
+    chain: 'INPUT'
+    protocol: 'tcp'
+    destination_port: "{{ mongodb_listen_port }}"
+    jump: 'ACCEPT'
