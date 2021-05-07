@@ -64,7 +64,8 @@
 - name: 'Ensure pymongo (PyPi)'
   pip:
     name: 'pymongo'
-    state: 'latest'
+    state: "{{ (mongodb_pymongo_version == 'latest') | ternary('latest', 'present') }}"
+    version: "{{ (mongodb_pymongo_version != 'latest') | ternary(mongodb_pymongo_version, omit) }}"
   when: mongodb_pymongo_pip
 
 - name: 'Setup firewall'
