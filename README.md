@@ -7,6 +7,10 @@ It supports a few scenarios out of the box:
 * Network-reachable database with SSL and Authentication
 * Replicated database (replicaset in MongoDB terms) with SSL and Authentication
 
+While MongoDB supports client authentication via SSL certificates, this role
+disables that by default as it is beyond the intended scope of this role. If you use
+this, the author welcomes a PR that adds this functionality as well.
+
 In order to deploy a new MongoDB you need to do the following things:
 
 * Include this role in your Ansible code

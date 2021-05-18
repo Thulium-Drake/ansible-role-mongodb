@@ -34,7 +34,7 @@ mongodb_admin_user: 'admin'
 mongodb_admin_password: 'mysecret_password'
 
 # Force client connections to use a client certificate when authenticating
-mongodb_require_client_certificates: true
+mongodb_require_client_certificates: false
 
 # MongoDB users (databases will be created with the users)
 # mongodb_users:
