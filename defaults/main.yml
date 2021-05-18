@@ -33,6 +33,9 @@ mongodb_listen_port: '27017'
 mongodb_admin_user: 'admin'
 mongodb_admin_password: 'mysecret_password'
 
+# Force client connections to use a client certificate when authenticating
+mongodb_require_client_certificates: true
+
 # MongoDB users (databases will be created with the users)
 # mongodb_users:
 #   - name: 'myuser'
