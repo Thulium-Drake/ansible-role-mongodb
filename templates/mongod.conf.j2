@@ -23,7 +23,7 @@ net:
   tls:
     mode: requireTLS
     certificateKeyFile: /etc/mongod/server_key_cert.pem
-    allowConnectionsWithoutCertificates: {{ not mongodb_require_client_certificates | lower}}
+    allowConnectionsWithoutCertificates: {{ (mongodb_require_client_certificates) | ternary('false', 'true') }}
   {% if mongodb_verify_certs %}
   CAFile: {{ mongodb_ca_cert }}
   {% endif %}
