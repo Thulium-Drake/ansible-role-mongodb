@@ -24,7 +24,7 @@ net:
     mode: requireTLS
     certificateKeyFile: /etc/mongod/server_key_cert.pem
   {% if mongodb_verify_certs %}
-    CAFile: {{ mongodb_ca_cert }}
+  CAFile: {{ mongodb_ca_cert }}
   {% endif %}
 
 # Require authentication
