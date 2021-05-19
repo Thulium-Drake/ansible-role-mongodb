@@ -127,6 +127,7 @@
     group: "{{ (ansible_facts['os_family'] == 'Debian') | ternary('mongodb', 'mongod') }}"
     mode: 0400
   when: mongodb_replicaset_name != ''
+  no_log: "{{ mongodb_no_log }}"
 
 - name: 'Ensure configuration'
   template:
@@ -204,3 +205,4 @@
       loop_var: 'db_user'
     delegate_to: "{{ (mongodb_replicaset_name != '') | ternary(mongodb_replicaset_members[0], omit) }}"
     run_once: "{{ (mongodb_replicaset_name != '') | ternary(true, false) }}"
+    no_log: "{{ mongodb_no_log }}"

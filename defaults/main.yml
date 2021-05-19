@@ -1,4 +1,6 @@
 ---
+# Show full debug logging
+mongodb_no_log: true
 # MongoDB version and edition information
 mongodb_edition: 'org' # or enterprise
 mongodb_version: '4.4' # check for more versions on https://docs.mongodb.com
