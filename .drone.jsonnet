@@ -69,7 +69,7 @@ local Converge(distro) = {
         name: "Ansible Galaxy",
         image: "registry.element-networks.nl/tools/molecule",
         commands: [
-          "ansible-galaxy import --token $$GALAXY_TOKEN Thulium-Drake ansible-role-empty --role-name=empty",
+          "ansible-galaxy import --token $$GALAXY_TOKEN Thulium-Drake ansible-role-mongodb --role-name=mongodb",
         ],
         environment:
           { GALAXY_TOKEN: { from_secret: "galaxy_token" } },
