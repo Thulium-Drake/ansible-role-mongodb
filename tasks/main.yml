@@ -1,16 +1,16 @@
 ---
 - name: 'Check config'
-  assert:
+  ansible.builtin.assert:
     that:
       - mongodb_edition in mongodb_supported_editions
       - mongodb_version in mongodb_supported_versions
     fail_msg: 'Unsupported configuration!'
 
 - name: 'Include OS specific vars'
-  include_vars: "{{ ansible_facts['os_family'] }}.yml"
+  ansible.builtin.include_vars: "{{ ansible_facts['os_family'] }}.yml"
 
-- name: 'Ensure repository (RHEL-like)'
-  yum_repository:
+- name: 'Ensure repository (RHEL-like)'  # yamllint disable rule:line-length
+  ansible.builtin.yum_repository:
     name: 'mongodb'
     description: 'MongoDB {{ mongodb_edition }} repository'
     baseurl: "https://repo.mongodb.{{ (mongodb_edition == 'org') | ternary('org', 'com') }}/yum/redhat/$releasever/mongodb-{{ mongodb_edition }}/{{ mongodb_version }}/$basearch/"
@@ -19,76 +19,80 @@
     - ansible_facts['os_family'] == 'RedHat'
     - mongodb_manage_repos
 
-- block:
-  - name: 'Ensure repository GPG key (Debian-like)'
-    apt_key:
-      data: '{{ lookup("url", "https://www.mongodb.org/static/pgp/server-{{ mongodb_version }}.asc", split_lines=False) }}'
-      state: 'present'
-    environment:
-      HTTP_PROXY: "{{ apt_proxy_url | default(omit) }}"
-      HTTPS_PROXY: "{{ apt_proxy_url |default(omit) }}"
-  - name: 'Ensure repository (Debian-like)'
-    apt_repository:
-      filename: 'mongodb'
-      repo: "deb https://repo.mongodb.{{ (mongodb_edition == 'org') | ternary('org', 'com') }}/apt/{{ ansible_facts['distribution'] | lower }} {{ ansible_facts['distribution_release'] }}/mongodb-{{ mongodb_edition }}/{{ mongodb_version }} {{ (ansible_facts['distribution'] == 'Debian') | ternary('main', 'multiverse') }}"
+- name: 'Ensure repository (Debian-like)'
   when:
     - ansible_facts['os_family'] == 'Debian'
     - mongodb_manage_repos
+  block:
+    - name: 'Ensure repository GPG key (Debian-like)'
+      ansible.builtin.apt_key:
+        data: '{{ lookup("url", "https://www.mongodb.org/static/pgp/server-" + mongodb_version + ".asc", split_lines=False) }}'
+        state: 'present'
+      environment:
+        HTTP_PROXY: "{{ apt_proxy_url | default(omit) }}"
+        HTTPS_PROXY: "{{ apt_proxy_url | default(omit) }}"
+
+    - name: 'Ensure repository (Debian-like)'  # yamllint disable rule:line-length
+      ansible.builtin.apt_repository:
+        filename: 'mongodb'
+        repo: "deb https://repo.mongodb.{{ (mongodb_edition == 'org') | ternary('org', 'com') }}/apt/{{ ansible_facts['distribution'] | lower }} {{ ansible_facts['distribution_release'] }}/mongodb-{{ mongodb_edition }}/{{ mongodb_version }} {{ (ansible_facts['distribution'] == 'Debian') | ternary('main', 'multiverse') }}"
 
 - name: 'Ensure packages'
-  package:
+  ansible.builtin.package:
     name:
       - "mongodb-{{ mongodb_edition }}"
       - 'sysfsutils'
     state: 'present'
 
 - name: 'Ensure pymongo (Distro package manager)'
-  package:
+  ansible.builtin.package:
     name: "python{{ (ansible_facts['python']['version']['major'] == 3) | ternary('3', omit) }}-pymongo"
     state: 'present'
   when: not mongodb_pymongo_pip
 
 - name: 'Ensure mongodb config dir'
-  file:
+  ansible.builtin.file:
     path: '/etc/mongod/ssl'
     state: 'directory'
     owner: "{{ (ansible_facts['os_family'] == 'Debian') | ternary('mongodb', 'mongod') }}"
     group: "{{ (ansible_facts['os_family'] == 'Debian') | ternary('mongodb', 'mongod') }}"
+    mode: '0750'
 
 - name: 'Ensure service'
-  service:
+  ansible.builtin.service:
     name: 'mongod'
     state: 'started'
     enabled: true
 
 - name: 'Ensure pymongo (PyPi)'
-  pip:
+  ansible.builtin.pip:
     name: 'pymongo'
     state: "{{ (mongodb_pymongo_version == 'latest') | ternary('latest', 'present') }}"
     version: "{{ (mongodb_pymongo_version != 'latest') | ternary(mongodb_pymongo_version, omit) }}"
   when: mongodb_pymongo_pip
 
 - name: 'Setup firewall'
-  import_tasks: 'firewall_iptables.yml'
+  ansible.builtin.import_tasks: 'firewall_iptables.yml'
   when:
     - ansible_facts['os_family'] == 'Debian'
     - mongodb_manage_firewall
 
 - name: 'Setup firewall'
-  import_tasks: 'firewall_firewalld.yml'
+  ansible.builtin.import_tasks: 'firewall_firewalld.yml'
   when:
     - ansible_facts['os_family'] == 'RedHat'
     - mongodb_manage_firewall
 
-- when: mongodb_security_enabled
+- name: 'Ensure security settings'
+  when: mongodb_security_enabled
   block:
     - name: 'Copy certificate files to mongo config dir'
-      copy:
+      ansible.builtin.copy:
         src: "{{ cert_file['src'] }}"
         dest: "/etc/mongod/ssl/{{ cert_file['dest'] }}"
         owner: "{{ (ansible_facts['os_family'] == 'Debian') | ternary('mongodb', 'mongod') }}"
         group: "{{ (ansible_facts['os_family'] == 'Debian') | ternary('mongodb', 'mongod') }}"
-        mode: 0600
+        mode: '0600'
         remote_src: true
       loop:
         - src: "{{ mongodb_ssl_cert }}"
@@ -99,12 +103,12 @@
         loop_var: 'cert_file'
 
     - name: 'Ensure SSL certificate key container'
-      assemble:
+      ansible.builtin.assemble:
         src: '/etc/mongod/ssl/'
         dest: '/etc/mongod/server_key_cert.pem'
         owner: "{{ (ansible_facts['os_family'] == 'Debian') | ternary('mongodb', 'mongod') }}"
         group: "{{ (ansible_facts['os_family'] == 'Debian') | ternary('mongodb', 'mongod') }}"
-        mode: 0600
+        mode: '0600'
         remote_src: true
       notify: 'restart mongod'
 
@@ -119,44 +123,46 @@
     create_for_localhost_exception: '/etc/mongod/ansible_admin_user_created'
 
 - name: 'Ensure replication keyfile'
-  copy:
+  ansible.builtin.copy:
     content: |
       {{ mongodb_replicaset_password }}
     dest: '/etc/mongod/replication.key'
     owner: "{{ (ansible_facts['os_family'] == 'Debian') | ternary('mongodb', 'mongod') }}"
     group: "{{ (ansible_facts['os_family'] == 'Debian') | ternary('mongodb', 'mongod') }}"
-    mode: 0400
-  when: mongodb_replicaset_name != ''
+    mode: '0400'
+  when: mongodb_replicaset_name | length > 0
   no_log: "{{ mongodb_no_log }}"
 
 - name: 'Ensure configuration'
-  template:
+  ansible.builtin.template:
     src: 'mongod.conf.j2'
     dest: '/etc/mongod.conf'
-    mode: 0644
+    mode: ;'0644'
   notify: 'restart mongod'
 
 - name: 'Get current tuned profile'
-  shell: |
+  ansible.builtin.shell: |
+    set -o pipefail
     tuned-adm active | awk '{print $NF}'
   register: 'tuned_profile'
   changed_when: false
   when: mongodb_manage_tuned
 
-- when:
+- name: 'Ensure tuned configuration'
+  when:
     - tuned_profile['stdout'] != 'ansible_mongodb_tuned'
     - mongodb_manage_tuned
   block:
     - name: 'Ensure tuned profile directory'
-      file:
+      ansible.builtin.file:
         path: '/etc/tuned/ansible_mongodb_tuned'
         state: 'directory'
-        mode: 0755
+        mode: '0755'
 
     - name: 'Ensure tuned profile'
-      copy:
+      ansible.builtin.copy:
         dest: '/etc/tuned/ansible_mongodb_tuned/tuned.conf'
-        mode: 0644
+        mode: '0644'
         content: |
           # Managed by Ansible role 'mongodb'
           # YOUR CHANGES WILL BE LOST!
@@ -167,42 +173,45 @@
           transparent_hugepages=never
 
     - name: 'Activate tuned profile'
-      command: tuned-adm profile ansible_mongodb_tuned
-      notify: 'restart mongod'
+      ansible.builtin.command: tuned-adm profile ansible_mongodb_tuned
+      changed_when: true
+      notify: 'Restart mongod'
 
-- meta: 'flush_handlers'
+- name: 'Flush handlers'
+  ansible.builtin.meta: 'flush_handlers'
 
-- when: mongodb_security_enabled
+- name: 'Ensure MongoDB replicaset'
+  when: mongodb_security_enabled
   block:
-  - name: 'Ensure replica-set'
-    community.mongodb.mongodb_replicaset:
-      replica_set: "{{ mongodb_replicaset_name }}"
-      members: "{{ mongodb_replicaset_members }}"
-      arbiter_at_index: "{{ mongodb_replicaset_arbiter | ternary(mongodb_replicaset_members | length -1, omit) }}"
-      login_host: 'localhost'
-      login_user: "{{ mongodb_admin_user }}"
-      login_password: "{{ mongodb_admin_password }}"
-      ssl: true
-      ssl_cert_reqs: 'CERT_NONE'
-    delegate_to: "{{ mongodb_replicaset_members[0] }}"
-    run_once: true
-    when: mongodb_replicaset_name != ''
+    - name: 'Ensure replica-set'
+      community.mongodb.mongodb_replicaset:
+        replica_set: "{{ mongodb_replicaset_name }}"
+        members: "{{ mongodb_replicaset_members }}"
+        arbiter_at_index: "{{ mongodb_replicaset_arbiter | ternary(mongodb_replicaset_members | length - 1, omit) }}"
+        login_host: 'localhost'
+        login_user: "{{ mongodb_admin_user }}"
+        login_password: "{{ mongodb_admin_password }}"
+        ssl: true
+        ssl_cert_reqs: 'CERT_NONE'
+      delegate_to: "{{ mongodb_replicaset_members[0] }}"
+      run_once: true
+      when: mongodb_replicaset_name | length > 0
 
-  - name: 'Ensure databases & users'
-    community.mongodb.mongodb_user:
-      database: "{{ db_user['database'] }}"
-      name: "{{ db_user['name'] }}"
-      password: "{{ db_user['password'] }}"
-      roles: "{{ db_user['roles'] }}"
-      login_host: 'localhost'
-      replica_set: "{{ (mongodb_replicaset_name != '') | ternary(mongodb_replicaset_name, omit) }}"
-      login_user: "{{ mongodb_admin_user }}"
-      login_password: "{{ mongodb_admin_password }}"
-      ssl: true
-      ssl_cert_reqs: 'CERT_NONE'
-    loop: "{{ mongodb_users }}"
-    loop_control:
-      loop_var: 'db_user'
-    delegate_to: "{{ (mongodb_replicaset_name != '') | ternary(mongodb_replicaset_members[0], omit) }}"
-    run_once: "{{ (mongodb_replicaset_name != '') | ternary(true, false) }}"
-    no_log: "{{ mongodb_no_log }}"
+    - name: 'Ensure databases & users'
+      community.mongodb.mongodb_user:
+        database: "{{ db_user['database'] }}"
+        name: "{{ db_user['name'] }}"
+        password: "{{ db_user['password'] }}"
+        roles: "{{ db_user['roles'] }}"
+        login_host: 'localhost'
+        replica_set: "{{ (mongodb_replicaset_name | length > 0) | ternary(mongodb_replicaset_name, omit) }}"
+        login_user: "{{ mongodb_admin_user }}"
+        login_password: "{{ mongodb_admin_password }}"
+        ssl: true
+        ssl_cert_reqs: 'CERT_NONE'
+      loop: "{{ mongodb_users }}"
+      loop_control:
+        loop_var: 'db_user'
+      delegate_to: "{{ (mongodb_replicaset_name | length > 0) | ternary(mongodb_replicaset_members[0], omit) }}"
+      run_once: "{{ (mongodb_replicaset_name | length > 0) | ternary(true, false) }}"
+      no_log: "{{ mongodb_no_log }}"

@@ -3,17 +3,17 @@
   hosts: 'all'
   tasks:
     - name: 'Update APT cache'
-      apt:
+      ansible.builtin.apt:
         update_cache: true
       when: ansible_facts['os_family'] == 'Debian'
 
     - name: 'Update YUM cache'
-      yum:
+      ansible.builtin.yum:
         update_cache: true
       when: ansible_facts['os_family'] == 'RedHat'
 
     - name: 'Ensure supporting packages'
-      package:
+      ansible.builtin.package:
         name:
           - 'ssl-cert'
           - 'gnupg2'
@@ -21,9 +21,12 @@
       when: ansible_facts['os_family'] == 'Debian'
 
     - name: 'Ensure directory'
-      file:
+      ansible.builtin.file:
         path: '/etc/ssl/mongodb'
         state: 'directory'
+        owner: 'root'
+        group: 'root'
+        mode: '0755'
 
     - name: 'Generate SSL key'
       community.crypto.openssl_privatekey:
@@ -37,7 +40,10 @@
         provider: 'selfsigned'
 
     - name: 'Copy cert to ca'
-      copy:
+      ansible.builtin.copy:
         src: '/etc/ssl/mongodb/server.crt'
         dest: '/etc/ssl/mongodb/ca.crt'
+        owner: 'root'
+        group: 'root'
+        mode: '0755'
         remote_src: true

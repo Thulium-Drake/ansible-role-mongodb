@@ -1,12 +1,12 @@
 ---
 - name: 'Install packages'
-  package:
+  ansible.builtin.package:
     name:
       - 'iptables-persistent'
     state: 'present'
 
 - name: 'Ensure services'
-  service:
+  ansible.builtin.service:
     name: "{{ service }}"
     state: 'started'
     enabled: true
@@ -16,7 +16,7 @@
     loop_var: 'service'
 
 - name: 'Ensure service port'
-  iptables:
+  ansible.builtin.iptables:
     chain: 'INPUT'
     protocol: 'tcp'
     destination_port: "{{ mongodb_listen_port }}"
